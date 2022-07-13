@@ -6,4 +6,6 @@ interface FragmentNavigator {
     fun navigateTo(
         fragment: Fragment
     )
+
+    fun goBack()
 }

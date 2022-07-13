@@ -6,7 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.viewbinding.ViewBinding
+import com.notes.di.DaggerAppComponent
+import com.notes.di.DaggerRootComponent
+import javax.inject.Inject
 
 typealias ViewBindingCreator<VB> = (LayoutInflater, ViewGroup?, Boolean) -> VB
 

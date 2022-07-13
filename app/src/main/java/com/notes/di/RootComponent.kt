@@ -1,7 +1,12 @@
 package com.notes.di
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.notes.ui.list.NoteListViewModel
+import dagger.Binds
 import dagger.Component
+import dagger.Module
+import dagger.multibindings.IntoMap
 
 @RootScope
 @Component(
@@ -9,6 +14,7 @@ import dagger.Component
         AppComponent::class,
     ],
     modules = [
+
     ]
 )
 interface RootComponent {
@@ -19,7 +25,4 @@ interface RootComponent {
             appComponent: AppComponent
         ): RootComponent
     }
-
-    fun getNoteListViewModel(): NoteListViewModel
-
 }

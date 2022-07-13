@@ -4,37 +4,32 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.notes.data.NoteDatabase
-import kotlinx.coroutines.Dispatchers
+import com.notes.data.NotesRepository
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-class NoteListViewModel @Inject constructor(
-    private val noteDatabase: NoteDatabase
+class NoteListViewModel @AssistedInject constructor(
+    private val notesRepository: NotesRepository
 ) : ViewModel() {
 
-    private val _notes = MutableLiveData<List<NoteListItem>?>()
-    val notes: LiveData<List<NoteListItem>?> = _notes
-
-    private val _navigateToNoteCreation = MutableLiveData<Unit?>()
-    val navigateToNoteCreation: LiveData<Unit?> = _navigateToNoteCreation
-
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            _notes.postValue(
-                noteDatabase.noteDao().getAll().map {
-                    NoteListItem(
-                        id = it.id,
-                        title = it.title,
-                        content = it.content,
-                    )
-                }
-            )
-        }
+    @AssistedFactory
+    interface Factory {
+        fun create(): NoteListViewModel
     }
 
-    fun onCreateNoteClick() {
-        _navigateToNoteCreation.postValue(Unit)
+    private val _notes = MutableLiveData<List<NoteListItem>?>()
+
+    val notes: LiveData<List<NoteListItem>?> = _notes
+
+    init {
+        viewModelScope.launch {
+            notesRepository.loadNotes().collect {
+                _notes.postValue(it)
+            }
+
+        }
     }
 
 }

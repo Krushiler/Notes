@@ -9,18 +9,32 @@ import androidx.recyclerview.widget.RecyclerView
 import com.notes.databinding.FragmentNoteListBinding
 import com.notes.databinding.ListItemNoteBinding
 import com.notes.di.DependencyManager
-import com.notes.ui._base.FragmentNavigator
+import com.notes.di.provideAssistedViewModel
 import com.notes.ui._base.ViewBindingFragment
-import com.notes.ui._base.findImplementationOrThrow
+import com.notes.ui._base.navigateTo
 import com.notes.ui.details.NoteDetailsFragment
+import com.notes.ui.details.NoteDetailsViewModel
 
 class NoteListFragment : ViewBindingFragment<FragmentNoteListBinding>(
     FragmentNoteListBinding::inflate
 ) {
 
-    private val viewModel by lazy { DependencyManager.noteListViewModel() }
+    private lateinit var viewModel: NoteListViewModel
 
-    private val recyclerViewAdapter = RecyclerViewAdapter()
+    private val recyclerViewAdapter = RecyclerViewAdapter(
+        onNoteClick = {
+            onNoteClick(it)
+        }
+    )
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        DependencyManager.getAppComponent().inject(this)
+        viewModel = provideAssistedViewModel {
+            DependencyManager.getAppComponent().noteListViewModel().create()
+        }
+    }
+
 
     override fun onViewBindingCreated(
         viewBinding: FragmentNoteListBinding,
@@ -36,7 +50,7 @@ class NoteListFragment : ViewBindingFragment<FragmentNoteListBinding>(
             )
         )
         viewBinding.createNoteButton.setOnClickListener {
-            viewModel.onCreateNoteClick()
+            navigateTo(NoteDetailsFragment())
         }
 
         viewModel.notes.observe(
@@ -47,19 +61,20 @@ class NoteListFragment : ViewBindingFragment<FragmentNoteListBinding>(
                 }
             }
         )
-        viewModel.navigateToNoteCreation.observe(
-            viewLifecycleOwner,
-            {
-                findImplementationOrThrow<FragmentNavigator>()
-                    .navigateTo(
-                        NoteDetailsFragment()
-                    )
-
-            }
-        )
     }
 
-    private class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
+    private fun onNoteClick(noteId: Long) {
+        val fragment = NoteDetailsFragment()
+        val args = Bundle().apply {
+            putLong(NoteDetailsFragment.EXTRAS_NOTE_ID, noteId)
+        }
+        fragment.arguments = args
+        navigateTo(fragment)
+    }
+
+    private class RecyclerViewAdapter(
+        private val onNoteClick: (noteId: Long) -> Unit
+    ) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
 
         private val items = mutableListOf<NoteListItem>()
 
@@ -79,6 +94,9 @@ class NoteListFragment : ViewBindingFragment<FragmentNoteListBinding>(
             position: Int
         ) {
             holder.bind(items[position])
+            holder.binding.root.setOnClickListener {
+                onNoteClick(items[position].id)
+            }
         }
 
         override fun getItemCount() = items.size
@@ -92,7 +110,7 @@ class NoteListFragment : ViewBindingFragment<FragmentNoteListBinding>(
         }
 
         private class ViewHolder(
-            private val binding: ListItemNoteBinding
+            val binding: ListItemNoteBinding
         ) : RecyclerView.ViewHolder(
             binding.root
         ) {

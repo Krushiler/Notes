@@ -21,3 +21,15 @@ fun <L : Any> Fragment.findImplementation(klass: Class<L>): L? {
         else -> parentFragment?.findImplementation(klass)
     }
 }
+
+fun Fragment.navigateTo(fragment: Fragment) {
+    findImplementationOrThrow<FragmentNavigator>()
+        .navigateTo(
+            fragment
+        )
+}
+
+fun Fragment.goBack() {
+    findImplementationOrThrow<FragmentNavigator>()
+        .goBack()
+}

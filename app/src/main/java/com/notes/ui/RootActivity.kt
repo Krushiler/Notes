@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.notes.databinding.ActivityRootBinding
 import com.notes.ui._base.FragmentNavigator
+import com.notes.ui.details.NoteDetailsFragment
+import com.notes.ui.details.NoteDetailsViewModel
 import com.notes.ui.list.NoteListFragment
 
 class RootActivity : AppCompatActivity(), FragmentNavigator {
@@ -16,17 +18,19 @@ class RootActivity : AppCompatActivity(), FragmentNavigator {
         val viewBinding = ActivityRootBinding.inflate(layoutInflater)
         this.viewBinding = viewBinding
         setContentView(viewBinding.root)
-        supportFragmentManager
-            .beginTransaction()
-            .add(
-                viewBinding.container.id,
-                NoteListFragment()
-            )
-            .commit()
+        if (savedInstanceState == null) {
+            supportFragmentManager
+                .beginTransaction()
+                .add(
+                    viewBinding.container.id,
+                    NoteListFragment()
+                )
+                .commit()
+        }
     }
 
     override fun navigateTo(
-        fragment: Fragment
+        fragment: Fragment,
     ) {
         val viewBinding = this.viewBinding ?: return
         supportFragmentManager
@@ -35,7 +39,12 @@ class RootActivity : AppCompatActivity(), FragmentNavigator {
                 viewBinding.container.id,
                 fragment
             )
+            .addToBackStack(fragment::class.simpleName)
             .commit()
+    }
+
+    override fun goBack() {
+        onBackPressed()
     }
 
     override fun onBackPressed() {
